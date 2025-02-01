@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            width: 200px;
+            cursor: pointer;
+        }
+        .card img {
+            width: 100%;
+            height: auto;
+        }
+        .card-title {
+            padding: 10px;
+            text-align: center;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .modal-content video {
+            width: 100%;
+            height: auto;
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="movie-list">
+        <!-- Movie cards will be inserted here by JavaScript -->
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="close" id="close">&times;</span>
+            <video controls id="video-player">
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+
+    <script>
+        async function fetchMovies() {
+            try {
+                const response = await fetch('http://localhost:7242/api/all');
+                const movies = await response.json();
+                return movies;
+            } catch (error) {
+                console.error('Error fetching movies:', error);
+                return [];
+            }
+        }
+
+        async function displayMovies() {
+            const movies = await fetchMovies();
+            const movieList = document.getElementById('movie-list');
+            const modal = document.getElementById('modal');
+            const videoPlayer = document.getElementById('video-player');
+            const closeBtn = document.getElementById('close');
+
+            movies.forEach(movie => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${movie.thumb}" alt="${movie.title}">
+                    <div class="card-title">${movie.title}</div>
+                `;
+                card.addEventListener('click', () => {
+                    videoPlayer.src = movie.video;
+                    modal.style.display = 'flex';
+                });
+                movieList.appendChild(card);
+            });
+
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                videoPlayer.pause();
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    videoPlayer.pause();
+                }
+            });
+        }
+
+        // Call displayMovies to fetch and display movies on page load
+        displayMovies();
+
+    </script>
+</body>
+</html>
